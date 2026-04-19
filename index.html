@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sorting Comparison Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f9;
+            margin: 0;
+        }
+
+        .container {
+            width: 60%;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        textarea {
+            width: 80%;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #007BFF;
+            color: white;
+            padding: 10px;
+        }
+
+        td {
+            padding: 10px;
+            text-align: center;
+        }
+
+        tr:nth-child(even) {
+            background: #f2f2f2;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>Sorting Algorithm Comparison</h1>
+
+    <p>Enter numbers (comma separated):</p>
+    <textarea id="numbers" rows="5" placeholder="Example: 5,2,9,1,6"></textarea>
+
+    <br>
+    <button onclick="runSort()">Compare</button>
+
+    <table border="1">
+        <tr>
+            <th>Algorithm</th>
+            <th>Time (sec)</th>
+            <th>Time Complexity</th>
+        </tr>
+        <tbody id="tableBody"></tbody>
+    </table>
+
+    <canvas id="chart"></canvas>
+</div>
+
+<script>
+let chart;
+
+function runSort() {
+    let input = document.getElementById("numbers").value;
+
+    fetch('/sort', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ numbers: input })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+
+        let table = `
+            <tr>
+                <td>Bubble Sort</td>
+                <td>${data.bubble.toFixed(6)}</td>
+                <td>O(n²)</td>
+            </tr>
+            <tr>
+                <td>Merge Sort</td>
+                <td>${data.merge.toFixed(6)}</td>
+                <td>O(n log n)</td>
+            </tr>
+            <tr>
+                <td>Quick Sort</td>
+                <td>${data.quick.toFixed(6)}</td>
+                <td>O(n log n)</td>
+            </tr>
+        `;
+
+        document.getElementById("tableBody").innerHTML = table;
+
+        if (chart) chart.destroy();
+
+        chart = new Chart(document.getElementById('chart'), {
+            type: 'bar',
+            data: {
+                labels: ['Bubble', 'Merge', 'Quick'],
+                datasets: [{
+                    label: 'Time (seconds)',
+                    data: [data.bubble, data.merge, data.quick]
+                }]
+            }
+        });
+    });
+}
+</script>
+
+</body>
+</html>
